@@ -1,0 +1,50 @@
+erDiagram
+    USER {
+        INTEGER id PK
+        TEXT type "admin | customer"
+        TEXT username
+        TEXT password_hash
+    }
+
+    PRODUCT {
+        INTEGER id PK
+        TEXT name
+        TEXT description
+        REAL price
+        INTEGER stock_quantity
+        INTEGER category_id FK
+        DATETIME created_at
+        DATETIME updated_at
+        INTEGER created_by FK
+        INTEGER updated_by FK
+        INTEGER is_deleted
+    }
+
+    CART {
+        INTEGER id PK
+        INTEGER customer_id FK
+        INTEGER product_id FK
+        INTEGER is_deleted
+    }
+
+    "ORDER" {
+        INTEGER id PK
+        INTEGER customer_id FK
+        INTEGER product_id FK
+        INTEGER is_deleted
+    }
+
+    CATEGORY {
+        INTEGER id PK
+        TEXT name
+        TEXT description
+    }
+
+    %% Relationships
+    USER ||--o{ CART : "customer_id"
+    USER ||--o{ "ORDER" : "customer_id"
+    PRODUCT ||--o{ CART : "product_id"
+    PRODUCT ||--o{ "ORDER" : "product_id"
+    USER ||--|| PRODUCT : "created_by"
+    USER ||--|| PRODUCT : "updated_by"
+    CATEGORY ||--o{ PRODUCT : "category_id"
