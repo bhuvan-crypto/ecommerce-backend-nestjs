@@ -1,4 +1,4 @@
-import { Role } from 'src/types/user';
+import { Role } from '../../types/user';
 declare global {
   namespace Express {
     interface User {

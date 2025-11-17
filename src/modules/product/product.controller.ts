@@ -13,8 +13,8 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Auth } from '../auth/auth.decorator';
-import { Roles } from 'src/common/decoraters/roles.decorator';
-import { Role } from 'src/types/user';
+import { Roles } from '../../common/decoraters/roles.decorator';
+import { Role } from '../../types/user';
 import { ApiQuery } from '@nestjs/swagger';
 
 @Auth()

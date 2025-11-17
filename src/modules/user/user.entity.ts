@@ -1,7 +1,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Role } from 'src/types/user';
+import { Role } from '../../types/user';
 
 @Schema({ timestamps: true })
 export class User extends Document {

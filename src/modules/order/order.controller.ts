@@ -1,7 +1,8 @@
 import { Controller, Delete, Get, Param, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
-import { Roles } from 'src/common/decoraters/roles.decorator';
-import { Role } from 'src/types/user';
+import { Roles } from '../../common/decoraters/roles.decorator';
+import { Role } from '../../types/user';
+
 import { Auth } from '../auth/auth.decorator';
 import { OrderService } from './order.service';
 
