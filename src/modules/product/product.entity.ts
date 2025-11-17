@@ -1,48 +1,32 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { User } from '../user/user.entity';
 
-@Entity('products')
-export class Product {
-  @PrimaryGeneratedColumn()
-  id: number;
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-  @Column()
+@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
+export class Product extends Document {
+  @Prop({ required: true })
   name: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Prop({ type: String })
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Prop({ type: Number, required: true })
   price: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Prop({ type: Number, default: 0 })
   stock_quantity: number;
 
-  @Column({ nullable: true })
-  category_id: number;
+  @Prop({ type: String })
+  category_id: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
-  created_by: number;
+  @Prop({ type: String })
+  created_by: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'updated_by' })
-  updated_by: number;
+  @Prop({ type: String })
+  updated_by: string;
 
-  @Column({ default: false })
+  @Prop({ type: Boolean, default: false })
   is_deleted: boolean;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }
+
+export const ProductSchema = SchemaFactory.createForClass(Product);

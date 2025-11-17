@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './modules/user/user.module';
 import { ProductModule } from './modules/product/product.module';
@@ -18,16 +18,8 @@ import { AuthModule } from './modules/auth/auth.module';
       envFilePath: '.env',
     }),
 
-    // 🗄️ TypeORM Database Connection
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'ecommerce.db',
-      entities: [User, Product, Cart, Order],
-      synchronize: true,
-      extra: {
-        foreignKeys: true,
-      },
-    }),
+    // 🗄️ Mongoose Database Connection
+    MongooseModule.forRoot(process.env.DATABASE_URL),
 
     // 🧩 Feature Modules
     AuthModule,

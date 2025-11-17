@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { PrivateUserController } from './private-user.controller';
 import { PublicUserController } from './public-user.controller';
-import { User } from './user.entity';
+import { User, UserSchema } from './user.entity';
 import { UserService } from './user.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]), // Register User entity in TypeORM
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), // Register User schema in Mongoose
   ],
   controllers: [PublicUserController, PrivateUserController], // Routes (HTTP endpoints)
   providers: [UserService], // Business logic

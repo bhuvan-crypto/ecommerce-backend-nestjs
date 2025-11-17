@@ -17,12 +17,12 @@ export class CartController {
   }
 
   @Get(':customerId')
-  getCustomerCart(@Param('customerId') customerId: number) {
+  getCustomerCart(@Param('customerId') customerId: string) {
     return this.cartService.findByCustomer(customerId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return this.cartService.remove(id);
   }
 }

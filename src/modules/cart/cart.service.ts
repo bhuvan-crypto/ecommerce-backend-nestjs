@@ -1,74 +1,68 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { Cart } from './cart.entity';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 
 @Injectable()
 export class CartService {
   constructor(
-    @InjectRepository(Cart)
-    private readonly cartRepo: Repository<Cart>,
+    @InjectModel(Cart.name)
+    private readonly cartModel: Model<Cart>,
   ) {}
 
-  add(dto: AddToCartDto) {
-    const cartItem = this.cartRepo.create({
-      customer_id: { id: dto.customer_id },
-      product_id: { id: dto.product_id },
+  async add(dto: AddToCartDto) {
+    const cartItem = new this.cartModel({
+      customer_id: dto.customer_id,
+      product_id: dto.product_id,
       quantity: dto.quantity,
     });
-
-    return this.cartRepo.save(cartItem);
+    return cartItem.save();
   }
 
-  findByCustomer(customer_id: number): Promise<
-    {
-      customer_id: number;
-      product: {
-        id: number;
-        name: string;
-        price: number;
-      };
-      product_id: number;
-      count: number;
-      total_quantity: number;
-      total_sum: number;
-    }[]
-  > {
-    return this.cartRepo
-      .createQueryBuilder('cart')
-      .select('cart.customer_id', 'customer_id')
-      .addSelect(
-        'JSON_OBJECT(' +
-          "'id', product.id, " +
-          "'name', product.name, " +
-          "'price', product.price" +
-          ')',
-        'product',
-      )
-      .addSelect('cart.product_id', 'product_id')
-      .addSelect('COUNT(cart.id)', 'count')
-      .addSelect('SUM(cart.quantity)', 'total_quantity')
-      .addSelect('SUM(cart.quantity * product.price)', 'total_sum')
-      .innerJoin('cart.product_id', 'product')
-      .where('cart.customer_id = :customerId', { customerId: customer_id })
-      .andWhere('cart.is_deleted = false')
-      .groupBy('cart.customer_id')
-      .addGroupBy('cart.product_id')
-      .getRawMany();
-  }
-
-  async remove(id: number) {
-    await this.cartRepo.update(id, { is_deleted: true });
-  }
-  async removeByCustomer(customerId: number) {
-    await this.cartRepo.update(
+  findByCustomer(customer_id: string) {
+    // Mongoose equivalent: aggregate by customer_id
+    return this.cartModel.aggregate([
+      { $match: { customer_id, is_deleted: false } },
       {
-        customer_id: {
-          id: customerId,
+        $lookup: {
+          from: 'products',
+          localField: 'product_id',
+          foreignField: '_id',
+          as: 'product',
         },
       },
-      { is_deleted: true },
-    );
+      { $unwind: '$product' },
+      {
+        $group: {
+          _id: { customer_id: '$customer_id', product_id: '$product_id' },
+          count: { $sum: 1 },
+          total_quantity: { $sum: '$quantity' },
+          total_sum: { $sum: { $multiply: ['$quantity', '$product.price'] } },
+          product: { $first: '$product' },
+        },
+      },
+      {
+        $project: {
+          customer_id: '$_id.customer_id',
+          product_id: '$_id.product_id',
+          count: 1,
+          total_quantity: 1,
+          total_sum: 1,
+          product: {
+            id: '$product._id',
+            name: '$product.name',
+            price: '$product.price',
+          },
+        },
+      },
+    ]);
+  }
+
+  async remove(id: string) {
+    await this.cartModel.findByIdAndUpdate(id, { is_deleted: true });
+  }
+  async removeByCustomer(customerId: string) {
+    await this.cartModel.updateMany({ customer_id: customerId }, { is_deleted: true });
   }
 }

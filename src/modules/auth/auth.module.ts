@@ -3,13 +3,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { User } from '../user/user.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { User,UserSchema } from '../user/user.entity';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     PassportModule.register({ defaultStrategy: 'jwt' }) as DynamicModule,
     JwtModule.register({
       secret: 'secret-key',

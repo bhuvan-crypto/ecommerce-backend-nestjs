@@ -47,7 +47,7 @@ export class ProductController {
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-    @Query('category') category?: number,
+    @Query('category') category?: string,
     @Query('priceMin') priceMin?: number,
     @Query('priceMax') priceMax?: number,
   ) {
@@ -58,17 +58,17 @@ export class ProductController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: string) {
     return this.productService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: number, @Body() dto: UpdateProductDto) {
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return this.productService.softDelete(id);
   }
 }

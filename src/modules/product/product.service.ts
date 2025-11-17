@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './product.entity';
@@ -9,42 +9,37 @@ import { PaginationResult } from 'src/types/product';
 @Injectable()
 export class ProductService {
   constructor(
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
+    @InjectModel(Product.name)
+    private readonly productModel: Model<Product>,
   ) {}
 
   async create(userID: number, dto: CreateProductDto): Promise<Product> {
-    const product = this.productRepo.create({
+    const product = new this.productModel({
       ...dto,
       created_by: userID,
     });
-    return this.productRepo.save(product);
+    return product.save();
   }
 
   async findAll(
     page = 1,
     limit = 10,
-    category?: number | null,
+    category?: string | null,
     price?: { min?: number; max?: number } | null,
   ): Promise<PaginationResult<Product>> {
-    const where: FindOptionsWhere<Product> = { is_deleted: false };
-
+    const filter: any = { is_deleted: false };
     if (category) {
-      where.category_id = category;
+      filter.category_id = category;
     }
-
     if (price?.min !== undefined && price?.max !== undefined) {
-      where.price = Between(price.min, price.max);
+      filter.price = { $gte: price.min, $lte: price.max };
     }
-
-    const [data, total] = await this.productRepo.findAndCount({
-      where,
-      relations: ['created_by', 'updated_by'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
-
+    const data = await this.productModel
+      .find(filter)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+    const total = await this.productModel.countDocuments(filter);
     return {
       data,
       total,
@@ -54,20 +49,18 @@ export class ProductService {
     };
   }
 
-  async findOne(id: number): Promise<Product> {
-    const product = await this.productRepo.findOne({
-      where: { id, is_deleted: false },
-    });
-    if (!product) throw new NotFoundException('Product not found');
+  async findOne(id: string): Promise<Product> {
+    const product = await this.productModel.findById(id).exec();
+    if (!product || product.is_deleted) throw new NotFoundException('Product not found');
     return product;
   }
 
-  async update(id: number, dto: UpdateProductDto): Promise<Product> {
-    await this.productRepo.update(id, dto);
+  async update(id: string, dto: UpdateProductDto): Promise<Product> {
+    await this.productModel.findByIdAndUpdate(id, dto);
     return this.findOne(id);
   }
 
-  async softDelete(id: number): Promise<void> {
-    await this.productRepo.update(id, { is_deleted: true });
+  async softDelete(id: string): Promise<void> {
+    await this.productModel.findByIdAndUpdate(id, { is_deleted: true });
   }
 }
