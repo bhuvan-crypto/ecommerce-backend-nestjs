@@ -26,6 +26,7 @@ export class ProductService {
     limit = 10,
     category?: string | null,
     price?: { min?: number; max?: number } | null,
+    ids?: string[] | null,
   ): Promise<PaginationResult<Product>> {
     const filter: any = { is_deleted: false };
     if (category) {
@@ -34,6 +35,12 @@ export class ProductService {
     if (price?.min !== undefined && price?.max !== undefined) {
       filter.price = { $gte: price.min, $lte: price.max };
     }
+
+    if (ids && ids.length > 0) {
+      filter._id = { $in: ids };
+    }
+
+
     const data = await this.productModel
       .find(filter)
       .skip((page - 1) * limit)

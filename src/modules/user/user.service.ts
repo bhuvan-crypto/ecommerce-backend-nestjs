@@ -1,87 +1,89 @@
+// 📁 src/modules/user/user.service.ts (Final Refactored Code)
+
 import {
+  Inject, // ⬅️ Necessary for custom token injection
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { User } from './user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, LoginDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 
+// 🏛️ NEW IMPORTS: The Abstraction (Interface) and the Token
+import { LoggerService } from '../../common/logger/logger.service';
+import { USER_REPOSITORY_TOKEN } from './interfaces/user.repository.interface';
+import type { IUserRepository } from './interfaces/user.repository.interface';
+
 @Injectable()
 export class UserService {
+  private readonly context = UserService.name; 
+
   constructor(
-    @InjectModel(User.name)
-    private readonly userModel: Model<User>,
-  ) { }
-
-// in user.service.ts
-
- // in user.service.ts
+    // 1️⃣ Inject the Interface (Abstraction) instead of the Mongoose Model (Detail)
+    @Inject(USER_REPOSITORY_TOKEN) 
+    private readonly userRepository: IUserRepository, // ⬅️ All data access happens here
+    
+    private readonly logger: LoggerService,
+  ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
-    
-    // --- ADD THESE TWO LINES ---
-    console.log('MODEL NAME:', this.userModel.modelName);
-    console.log('SCHEMA KEYS:', Object.keys(this.userModel.schema.paths));
-    // ----------------------------
-
+    this.logger.log(`Attempting to create user: ${dto.username}`, this.context);
     try {
+      // 🧱 Business Logic: Hash password before passing to repository
       const hash = await bcrypt.hash(dto.password, 10);
-      console.log('ATTEMPTING TO CREATE:', { username: dto.username, role: dto.role });
-
-      const createdUser = await this.userModel.create({
+      
+      const createdUser = await this.userRepository.create({ 
         username: dto.username,
         role: dto.role,
         passwordHash: hash
       });
 
-      console.log('--- SUCCESS: User was created ---', createdUser);
+      this.logger.log(`SUCCESS: User ${createdUser.username} was created.`, this.context);
       return createdUser;
 
     } catch (error) {
-      console.error('--- ERROR: FAILED TO CREATE USER ---', error);
+      this.logger.error('FAILED TO CREATE USER due to business error.', error.stack, this.context); 
       throw error;
     }
   }
 
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userRepository.findAll(); // ⬅️ Repository call
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userRepository.findOne(id); // ⬅️ Repository call
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
   async update(id: string, dto: UpdateUserDto): Promise<User> {
-    await this.userModel.findByIdAndUpdate(id, dto);
-    return this.findOne(id);
+    // Note: Password update logic would need to be added here for full business rules
+    const updatedUser = await this.userRepository.update(id, dto); // ⬅️ Repository call
+    if (!updatedUser) throw new NotFoundException('User not found for update');
+    return updatedUser;
   }
 
   async remove(id: string): Promise<void> {
-    await this.userModel.findByIdAndDelete(id);
+    await this.userRepository.remove(id); // ⬅️ Repository call
   }
-  async login(
-    username: string,
-    password: string,
-  ): Promise<{ message: string }> {
-    // 1️⃣ Find user by username
-    const user = await this.userModel.findOne({ username }).exec();
+
+  async login(username: string, password: string): Promise<{ message: string }> {
+    // 1️⃣ Find user by username using the Repository
+    const user = await this.userRepository.findByUsername(username); // ⬅️ Repository call
+    
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // 2️⃣ Compare passwords
+    // 2️⃣ Business Logic: Compare passwords (this stays in the service/business layer)
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid password');
     }
 
-    // 3️⃣ If valid, return success message
     return { message: `Welcome back, ${user.username}!` };
   }
 }

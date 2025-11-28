@@ -8,7 +8,7 @@ export class User extends Document {
   @Prop({ type: String, enum: Role, default: Role.CUSTOMER })
   role: Role;
 
-  @Prop({ unique: true, required: true })
+  @Prop({ unique: true, required: true,type: String })
   username: string;
 
   @Prop({ required: true })

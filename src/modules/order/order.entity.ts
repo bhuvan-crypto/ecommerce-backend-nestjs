@@ -1,36 +1,25 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  Column,
-  JoinColumn,
-  CreateDateColumn,
-} from 'typeorm';
-import { Product } from '../product/product.entity';
-import { User } from '../user/user.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-@Entity('orders')
-export class Order {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Schema({ timestamps: true })
+export class Order extends Document {
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  customer_id: Types.ObjectId;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'customer_id' })
-  customer_id: number;
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  product_id: Types.ObjectId;
 
-  @ManyToOne(() => Product)
-  @JoinColumn({ name: 'product_id' })
-  product_id: number;
-
-  @Column({ default: false })
-  is_deleted: boolean;
-
-  @Column({ default: 1 })
+  @Prop({ type: Number, default: 1 })
   quantity: number;
 
-  @Column({ default: 0 })
+  @Prop({ type: Boolean, default: false })
+  is_deleted: boolean;
+
+
+  @Prop({ type: Number, default: 0 })
   sum: number;
 
-  @CreateDateColumn()
+  @Prop({ type: Date, default: Date.now })
   created_at: Date;
 }
+export const OrderSchema = SchemaFactory.createForClass(Order);

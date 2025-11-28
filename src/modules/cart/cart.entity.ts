@@ -1,29 +1,20 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Product } from '../product/product.entity';
-import { User } from '../user/user.entity';
 
-@Entity('cart')
-export class Cart {
-  @PrimaryGeneratedColumn()
-  id: number;
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'customer_id' })
-  customer_id: User;
+@Schema({ timestamps: true })
+export class Cart extends Document {
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  customer_id: Types.ObjectId;
 
-  @ManyToOne(() => Product)
-  @JoinColumn({ name: 'product_id' })
-  product_id: Product;
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  product_id: Types.ObjectId;
 
-  @Column({ default: 1 })
+  @Prop({ type: Number, default: 1 })
   quantity: number;
 
-  @Column({ default: false })
+  @Prop({ type: Boolean, default: false })
   is_deleted: boolean;
 }
+
+export const CartSchema = SchemaFactory.createForClass(Cart);

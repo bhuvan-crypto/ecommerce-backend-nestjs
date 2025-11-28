@@ -10,6 +10,7 @@ import { Product } from './modules/product/product.entity';
 import { Cart } from './modules/cart/cart.entity';
 import { Order } from './modules/order/order.entity';
 import { AuthModule } from './modules/auth/auth.module';
+import { LoggerModule } from './common/logger/logger.module';
 @Module({
   imports: [
     // 🌱 Loads .env file (DATABASE_URL, PORT, etc.)
@@ -27,6 +28,7 @@ import { AuthModule } from './modules/auth/auth.module';
     ProductModule,
     CartModule,
     OrderModule,
+    LoggerModule
   ],
 })
 export class AppModule {}

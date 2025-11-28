@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { OrderService } from './order.service';
-import { OrderController } from './order.controller';
-import { Product } from '../product/product.entity';
-import { User } from '../user/user.entity';
-import { Order } from './order.entity';
 import { CartModule } from '../cart/cart.module';
+import { Product, ProductSchema } from '../product/product.entity';
+import { ProductModule } from '../product/product.module';
+import { User, UserSchema } from '../user/user.entity';
+import { OrderController } from './order.controller';
+import { Order, OrderSchema } from './order.entity';
+import { OrderService } from './order.service';
 
 @Module({
-  imports: [MongooseModule.forFeature([
-    { name: Order.name, schema: {} },
-    { name: User.name, schema: {} },
-    { name: Product.name, schema: {} },
-  ]), CartModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Order.name, schema: OrderSchema }
+    ]),
+    CartModule,
+    ProductModule,
+  ],
   controllers: [OrderController],
   providers: [OrderService],
   exports: [OrderService],
 })
-export class OrderModule {}
+export class OrderModule { }

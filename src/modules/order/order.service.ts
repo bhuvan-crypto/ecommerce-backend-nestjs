@@ -1,41 +1,80 @@
 import { Injectable } from '@nestjs/common';
+import { Model, Types } from 'mongoose';
 import { CartService } from '../cart/cart.service';
+import { ProductService } from '../product/product.service';
 import { Order } from './order.entity';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class OrderService {
   constructor(
+    @InjectModel(Order.name)
+
+    private readonly orderModel: Model<Order>,
     private readonly cartService: CartService,
-  ) {}
+    private readonly productService: ProductService
+
+  ) { }
 
   async create(customerId: string) {
-    const result = await this.cartService.findByCustomer(customerId);
+    const currentCart = await this.cartService.findByCustomer(customerId);
 
-    if (!result.length) {
+
+    const productIds = currentCart.map((item) => item.product_id);
+    const products = await this.productService.findAll(1, productIds.length, null, null, productIds);
+
+    for (const item of currentCart) {
+      const product = products.data.find((p) => p._id.toString() === item.product_id.toString());
+      if (!product || product.stock_quantity < item.total_quantity) {
+        throw new Error(`Product ${item.product_id} is out of stock`);
+      }
+    }
+
+
+    if (!currentCart.length) {
       throw new Error('Cart is empty');
     }
 
-    const dataToInsert = result.map((item) => ({
-      customer_id: item.customer_id,
-      product_id: item.product_id,
+
+    const dataToInsert = currentCart.map((item) => ({
+      customer_id:  new Types.ObjectId(item.customer_id),
+      product_id:  new Types.ObjectId(item.product_id),
       quantity: item.total_quantity,
       sum: item.total_sum,
     }));
 
-    // TODO: Implement order creation and stock decrement with Mongoose
+   const orders= await this.orderModel.insertMany(dataToInsert);
+
+    for (const item of currentCart) {
+      const product = products.data.find((p) => p._id.toString() === item.product_id.toString());
+      if (product) {
+        product.stock_quantity -= item.total_quantity;
+        await this.productService.update(product._id.toString(), { stock_quantity: product.stock_quantity });
+      }
+    }
+
+
     await this.cartService.removeByCustomer(customerId);
-    return [];
+
+    // const paymentProcessor = this.paymentService.getPaymentProcessor('Stripe');
+    // const paymentSuccess = await paymentProcessor.processPayment(100, 'USD');
+    // if (!paymentSuccess) {
+    //   throw new Error('Payment failed');
+    // }
+    // TODO: Implement order creation and stock decrement with Mongoose
+    return orders;
   }
 
-  findAll(customerId?: string) {
+  async findAll(customerId?: string) {
     if (customerId) {
-      // TODO: Refactor to use Mongoose
-      return [];
+      const orders = await this.orderModel.find({ customer_id: new Types.ObjectId(customerId), is_deleted: false });
+      return orders;
     }
+    const orders = await this.orderModel.find({ is_deleted: false });
+    return orders;
   }
 
   async cancel(id: string) {
-    // TODO: Implement cancel with Mongoose
-    return;
+    await this.orderModel.findByIdAndUpdate(id, { is_deleted: true });
   }
 }

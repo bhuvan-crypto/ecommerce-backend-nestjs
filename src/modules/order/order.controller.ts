@@ -19,7 +19,6 @@ export class OrderController {
 
   @Get()
   findAll(@Req() req: Request) {
-    console.log(req.user);
     if (req.user['role'] === Role.CUSTOMER) {
       return this.orderService.findAll(String(req.user['id']));
     }

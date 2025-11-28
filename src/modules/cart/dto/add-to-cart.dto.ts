@@ -1,20 +1,20 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber,IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AddToCartDto {
   @ApiProperty({
     description: 'Unique ID of the customer adding the product to the cart',
-    example: 12,
+    example: "691c2d9d6a3f3426780311b5",
   })
-  @IsNumber()
-  customer_id: number;
+  @IsString()
+  customer_id: string;
 
   @ApiProperty({
     description: 'Unique ID of the product to add to the cart',
-    example: 101,
+    example: "691c2ee1c344217a1cef3d49",
   })
-  @IsNumber()
-  product_id: number;
+  @IsString()
+  product_id: string;
 
   @ApiProperty({ description: 'Quantity to add', example: 2, default: 1 })
   @IsNumber()
