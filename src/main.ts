@@ -1,14 +1,16 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
+import { SuccessInterceptor } from './common/interceptors/success.interceptor';
+import { validationExceptionFactory } from './common/pipes/validation-exception.factory';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: "*",
-    methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    origin: [/^https:\/\/.*\.github\.dev$/], methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
     allowedHeaders: "Content-Type, Authorization",
   });
 
@@ -18,11 +20,18 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: validationExceptionFactory,
     }),
   );
 
-  app.useGlobalFilters(new MongoExceptionFilter());
+  // Exception Filters
+  app.useGlobalFilters(
+    new MongoExceptionFilter(),     // duplicate key
+    new ApiExceptionFilter()        // all other errors
+  );
 
+  // Success Interceptor
+  app.useGlobalInterceptors(new SuccessInterceptor());
   //  Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Ecommerce API')
