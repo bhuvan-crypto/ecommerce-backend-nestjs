@@ -49,6 +49,9 @@ async function bootstrap() {
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.1/swagger-ui-bundle.min.js',
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.1/swagger-ui-standalone-preset.min.js',
     ],
+    swaggerOptions: {
+      persistAuthorization: true
+    }
   });
   // ✅ Start server
   const port = process.env.PORT || 3000;

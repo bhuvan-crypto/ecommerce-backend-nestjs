@@ -11,7 +11,7 @@ export class ProductService {
   constructor(
     @InjectModel(Product.name)
     private readonly productModel: Model<Product>,
-  ) {}
+  ) { }
 
   async create(userID: number, dto: CreateProductDto): Promise<Product> {
     const product = new this.productModel({
@@ -70,4 +70,9 @@ export class ProductService {
   async softDelete(id: string): Promise<void> {
     await this.productModel.findByIdAndUpdate(id, { is_deleted: true });
   }
+
+  async findByIdAndUpdate(id: string, data: any) {
+    return this.productModel.findByIdAndUpdate(id, data, { new: true });
+  }
+
 }

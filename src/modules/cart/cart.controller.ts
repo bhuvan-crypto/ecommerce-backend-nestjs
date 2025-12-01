@@ -1,17 +1,23 @@
-import { Controller, Post, Get, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Param, Query } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { Auth } from '../auth/auth.decorator';
 import { Roles } from '../../common/decoraters/roles.decorator';
 import { Role } from '../../types/user';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { AddToCartResponse } from './dto/add-to-cart.response';
 
 @Auth()
 @Controller('cart')
 export class CartController {
-  constructor(private readonly cartService: CartService) {}
+  constructor(private readonly cartService: CartService) { }
 
   @Post()
   @Roles(Role.CUSTOMER)
+  @ApiOkResponse({
+    description: "Item added to cart",
+    type: AddToCartResponse,
+  })
   add(@Body() dto: AddToCartDto) {
     return this.cartService.add(dto);
   }
@@ -22,7 +28,8 @@ export class CartController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartService.remove(id);
+  remove(@Param('id') id: string, @Query('productId') productId: string
+  ) {
+    return this.cartService.remove(id,productId);
   }
 }
