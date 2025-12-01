@@ -6,6 +6,7 @@ import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 import { validationExceptionFactory } from './common/pipes/validation-exception.factory';
+import { LoggingInterceptor } from './common/interceptors/reqlog.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,7 +32,7 @@ async function bootstrap() {
   );
 
   // Success Interceptor
-  app.useGlobalInterceptors(new SuccessInterceptor());
+  app.useGlobalInterceptors(new SuccessInterceptor(),new LoggingInterceptor());
   //  Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Ecommerce API')

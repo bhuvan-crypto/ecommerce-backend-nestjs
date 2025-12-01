@@ -21,14 +21,11 @@ export class ApiExceptionFilter implements ExceptionFilter {
       }
 
       // Other HttpExceptions → simple message
-      message = res.message || res.error || exception.message;
-
+      message = exception.message || res.message || res.error;
       return response.status(status).json(ApiResponse.error(status, message));
-
-
     }
 
     // Fallback for unknown exceptions
-    return response.status(500).json(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error",));
+    return response.status(500).json(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, exception.message || "Internal server error",));
   }
 }
