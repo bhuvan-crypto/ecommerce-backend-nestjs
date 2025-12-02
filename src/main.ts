@@ -11,7 +11,7 @@ import { LoggingInterceptor } from './common/interceptors/reqlog.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [/^https:\/\/.*\.github\.dev$/], methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    origin: [/^https:\/\/.*\.github\.dev$/,"https://my-app-one-pink.vercel.app/"], methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
     allowedHeaders: "Content-Type, Authorization",
   });
 
