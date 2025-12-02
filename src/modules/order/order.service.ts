@@ -66,13 +66,27 @@ export class OrderService {
   }
 
   async findAll(customerId?: string) {
-    if (customerId) {
-      const orders = await this.orderModel.find({ customer_id: new Types.ObjectId(customerId), is_deleted: false });
-      return orders;
-    }
-    const orders = await this.orderModel.find({ is_deleted: false });
-    return orders;
+  const query: any = { is_deleted: false };
+
+  if (customerId) {
+    query.customer_id = new Types.ObjectId(customerId);
   }
+
+  const orders = await this.orderModel
+    .find(query)
+    .populate('product_id')
+    .lean();
+
+  // rename product_id → product
+  const mapped = orders.map((o) => ({
+    ...o,
+    product: o.product_id, // new field
+    product_id: undefined, // remove old
+  }));
+
+  return mapped;
+}
+
 
   async cancel(id: string) {
     await this.orderModel.findByIdAndUpdate(id, { is_deleted: true });

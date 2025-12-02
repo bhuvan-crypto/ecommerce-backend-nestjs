@@ -26,7 +26,7 @@ export class CreateProductDto {
     description: 'Category ID the product belongs to',
     example: 1,
   })
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  category_id?: number;
+  category_id?: string;
 }
