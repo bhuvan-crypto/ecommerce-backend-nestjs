@@ -9,6 +9,8 @@ import {
   FeatureDetailsResponseDto,
   DailyUsageDto,
   StatisticsDto,
+  UsageTrendQueryDto,
+  UsageTrendResponseDto,
 } from './dto';
 
 // Add your auth guard here
@@ -18,7 +20,7 @@ import {
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  @Get('overview')
+  @Get('v1/overview')
   @ApiOperation({ 
     summary: 'Get analytics overview',
     description: 'Returns overall statistics and feature usage summary for the specified date range. This endpoint provides a complete dashboard view with total events, unique features, unique users, and detailed breakdown of each feature usage.'
@@ -286,5 +288,37 @@ export class AnalyticsController {
     const end = query.endDate ? new Date(query.endDate) : undefined;
 
     return this.analyticsService.getStatistics(start, end);
+  }
+
+
+  @Get('features/:featureName/trend')
+  @ApiOperation({ 
+    summary: 'Get precise usage trend',
+    description: 'Returns usage data grouped by hour or minute. Can be filtered by a specific action (e.g., "view", "create").'
+  })
+  @ApiParam({ 
+    name: 'featureName', 
+    example: 'product' 
+  })
+  @ApiResponse({
+    status: 200,
+    type: [UsageTrendResponseDto],
+  })
+  async getUsageTrend(
+    @Param('featureName') featureName: string,
+    @Query() query: UsageTrendQueryDto,
+  ): Promise<UsageTrendResponseDto[]> {
+    const start = query.startDate ? new Date(query.startDate) : undefined;
+    const end = query.endDate ? new Date(query.endDate) : undefined;
+
+    // Default to last 24 hours if no date provided for granular query
+    const effectiveStart = start || new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+
+    return this.analyticsService.getUsageTrend(
+      featureName, 
+      effectiveStart, 
+      end, 
+      query.action,
+    );
   }
 }

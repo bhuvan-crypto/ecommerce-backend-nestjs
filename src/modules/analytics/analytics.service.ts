@@ -175,4 +175,43 @@ export class AnalyticsService {
       uniqueUsers: uniqueUsers.length,
     };
   }
+
+
+  async getUsageTrend(
+    featureName: string,
+    startDate?: Date,
+    endDate?: Date,
+    action?: string,
+  ) {
+    const match: any = { featureName };
+
+    // Filter by action if provided
+    if (action) {
+      match.action = action;
+    }
+
+    // Date filtering
+    if (startDate || endDate) {
+      match.timestamp = {};
+      if (startDate) match.timestamp.$gte = startDate;
+      if (endDate) match.timestamp.$lte = endDate;
+    }
+
+    // Define MongoDB date format based on granularity
+    // Hour: "2024-12-05 14:00"
+    // Minute: "2024-12-05 14:35"
+
+    return this.analyticsModel.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            $dateToString: {  date: '$timestamp' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } }, // Sort chronologically
+    ]);
+  }
 }

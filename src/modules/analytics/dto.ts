@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString, IsNumber, Min } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsNumber, Min, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // Query DTOs
@@ -169,5 +169,60 @@ export class DailyUsageDto {
     example: 245,
     description: 'Usage count for this day' 
   })
+  count: number;
+}
+
+export class UsageTrendQueryDto {
+  @ApiProperty({
+    description: 'Start date in ISO format',
+    required: false,
+  })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiProperty({
+    description: 'End date in ISO format',
+    required: false,
+  })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiProperty({
+    description: 'Time granularity',
+    enum: ['hour', 'minute'],
+    default: 'hour',
+    required: false,
+  })
+  // @IsOptional()
+  // @IsEnum(['hour', 'minute'])
+  // granularity?: 'hour' | 'minute' = 'hour';
+
+  @ApiProperty({
+    description: 'Filter by specific action name',
+    required: false,
+    example: 'view'
+  })
+  @IsOptional()
+  @IsString()
+  action?: string;
+
+  // @ApiProperty({
+  //   description: 'add client time zone',
+  //   required: false,
+  //   example: 'Asia/Kolkata'
+  // })
+
+  // @IsOptional()
+  // @IsString() // You can use @IsTimeZone() if you want strict validation
+  // timezone?: string = 'UTC';
+}
+
+export class UsageTrendResponseDto {
+  @ApiProperty({ example: '2024-12-05 14:30' })
+  _id: string;
+
+  @ApiProperty({ example: 42 })
   count: number;
 }
