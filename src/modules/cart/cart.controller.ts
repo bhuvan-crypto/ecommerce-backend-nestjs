@@ -6,6 +6,7 @@ import { Roles } from '../../common/decoraters/roles.decorator';
 import { Role } from '../../types/user';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { AddToCartResponse } from './dto/add-to-cart.response';
+import { TrackFeature } from '../analytics/decorators/track-feature.decorator';
 
 @Auth()
 @Controller('cart')
@@ -18,6 +19,11 @@ export class CartController {
     description: "Item added to cart",
     type: AddToCartResponse,
   })
+  @TrackFeature({
+    featureName: 'cart',
+    action: "add_to_cart",
+    includeMetadata: true
+  })
   add(@Body() dto: AddToCartDto) {
     return this.cartService.add(dto);
   }
@@ -28,8 +34,13 @@ export class CartController {
   }
 
   @Delete(':id')
+  @TrackFeature({
+    featureName: 'cart',
+    action: "remove_from_cart",
+    includeMetadata: true
+  })
   remove(@Param('id') id: string, @Query('productId') productId: string
   ) {
-    return this.cartService.remove(id,productId);
+    return this.cartService.remove(id, productId);
   }
 }

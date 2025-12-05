@@ -5,14 +5,20 @@ import { Role } from '../../types/user';
 
 import { Auth } from '../auth/auth.decorator';
 import { OrderService } from './order.service';
+import { TrackFeature } from '../analytics/decorators/track-feature.decorator';
 
 @Auth()
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(private readonly orderService: OrderService) { }
 
   @Post()
   @Roles(Role.CUSTOMER)
+  @TrackFeature({
+    featureName: 'order',
+    action: "order_placed",
+    includeMetadata: true
+  })
   create(@Req() req: Request) {
     return this.orderService.create(String(req.user['id']));
   }
@@ -26,6 +32,11 @@ export class OrderController {
   }
 
   @Delete(':id')
+  @TrackFeature({
+    featureName: 'order',
+    action: "order_cancelled",
+    includeMetadata: true
+  })
   cancel(@Param('id') id: string) {
     return this.orderService.cancel(id);
   }

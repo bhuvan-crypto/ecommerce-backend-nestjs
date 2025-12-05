@@ -14,8 +14,6 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const { method, url, body, query, params } = request;
 
-    const start = Date.now();
-
     console.log('--- Incoming Request ---');
     console.log('Method:', method);
     console.log('URL:', url);

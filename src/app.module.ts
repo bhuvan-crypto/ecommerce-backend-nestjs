@@ -11,6 +11,7 @@ import { Cart } from './modules/cart/cart.entity';
 import { Order } from './modules/order/order.entity';
 import { AuthModule } from './modules/auth/auth.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 @Module({
   imports: [
     // 🌱 Loads .env file (DATABASE_URL, PORT, etc.)
@@ -28,7 +29,8 @@ import { LoggerModule } from './common/logger/logger.module';
     ProductModule,
     CartModule,
     OrderModule,
-    LoggerModule
+    LoggerModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
