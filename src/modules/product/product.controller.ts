@@ -16,6 +16,7 @@ import { Auth } from '../auth/auth.decorator';
 import { Roles } from '../../common/decoraters/roles.decorator';
 import { Role } from '../../types/user';
 import { ApiQuery } from '@nestjs/swagger';
+import { TrackFeature } from '../analytics/decorators/track-feature.decorator';
 
 @Auth()
 @Controller('products')
@@ -24,6 +25,11 @@ export class ProductController {
 
   @Post()
   @Roles(Role.ADMIN)
+  @TrackFeature({ 
+      featureName: 'product', 
+      action: "create_product",
+      includeMetadata: true 
+    })
   create(@Req() req: Express.Request, @Body() dto: CreateProductDto) {
     return this.productService.create(req.user.id, dto);
   }
@@ -63,11 +69,21 @@ export class ProductController {
   }
 
   @Patch(':id')
+  @TrackFeature({ 
+      featureName: 'product', 
+      action: "update_product",
+      includeMetadata: true 
+    })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);
   }
-
+    
   @Delete(':id')
+  @TrackFeature({ 
+      featureName: 'product', 
+      action: "delete_product",
+      includeMetadata: true 
+    })
   remove(@Param('id') id: string) {
     return this.productService.softDelete(id);
   }
